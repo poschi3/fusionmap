@@ -6,6 +6,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+    <script src="button.js"></script>
     <style>
         body {
             margin: 0;
@@ -28,19 +29,20 @@
 
 
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
         });
 
 
-        var fusionTrans = L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
-            tms: true,
-            bounds: [[53.2975, 12.726], [53.3135, 12.765]],
-            attribution: "",
-            minZoom: 1,
-            maxZoom: 18,
-            opacity: 0.3,
-            reuseTiles: true
-        });
+        // var fusionTrans = L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
+        //     tms: true,
+        //     bounds: [[53.2975, 12.726], [53.3135, 12.765]],
+        //     attribution: "",
+        //     minZoom: 1,
+        //     maxZoom: 18,
+        //     opacity: 0.3,
+        //     reuseTiles: true
+        // });
 
 
         var fusion = L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
@@ -57,10 +59,10 @@
             center: [53.31, 12.74],
             zoom: 16,
             //minZoom: 13,
-            maxZoom: 18,
+            maxZoom: 19,
             attributionControl: false,
             scrollWheelZoom: false,
-            layers: [fusion]
+            layers: [fusion, osm]
         });
         map.scrollWheelZoom.enable()
 
@@ -69,19 +71,35 @@
 
         var overlayMaps = {
             "OSM": osm,
-            "Fusion": fusion,
-            "Fusion Transparent": fusionTrans
+            "Fusion": fusion
         };
 
         L.control.layers(baseMaps, overlayMaps).addTo(map);
 
+        var loc = null;
+        var locCircle = null;
 
         //map.locate({ setView: true, maxZoom: 16 });
         function onLocationFound(e) {
             var radius = e.accuracy;
-            L.marker(e.latlng).addTo(map)
-                .bindPopup("You are within " + radius + " meters from this point").openPopup();
-            L.circle(e.latlng, radius).addTo(map);
+
+            if (loc) {
+                console.log("update");
+                loc.setLatLng(e.latlng);
+                locCircle.setLatLng(e.latlng);
+                locCircle.setRadius(radius);
+            } else {
+                console.log("new");
+                loc = L.marker(e.latlng);
+                loc.addTo(map);
+
+                locCircle = L.circle(e.latlng, radius);
+                locCircle.addTo(map);
+
+            }
+            //L.marker(e.latlng).addTo(map);
+            //.bindPopup("You are within " + radius + " meters from this point").openPopup();
+
         }
         map.on('locationfound', onLocationFound);
 
@@ -92,7 +110,23 @@
 
 
 
+        function locateMe() {
+            this._map.locate({ setView: true, watch: true, enableHighAccuracy: true, timeout: 0 });
+        }
 
+
+        var myButtonOptions = {
+            'text': '',  // string
+            'iconUrl': 'https://unpkg.com/leaflet@1.5.1/dist/images/marker-icon.png',  // string
+            'onClick': locateMe,  // callback function
+            'hideText': true,  // bool
+            'maxWidth': 30,  // number
+            'doToggle': true,  // bool
+            'toggleStatus': false,  // bool
+            'position': 'topleft'
+        }
+
+        var myButton = new L.Control.Button(myButtonOptions).addTo(map);
 
 
     </script>
