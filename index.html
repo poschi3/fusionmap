@@ -25,21 +25,14 @@
 <body>
     <div id="map"></div>
     <script>
-        var map = L.map('map', {
-            center: [53.31, 12.74],
-            zoom: 16,
-            //minZoom: 13,
-            maxZoom: 18,
-            attributionControl: false,
-            scrollWheelZoom: false
-        });
-        map.scrollWheelZoom.enable()
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        });
 
-        L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
+
+        var fusionTrans = L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
             tms: true,
             bounds: [[53.2975, 12.726], [53.3135, 12.765]],
             attribution: "",
@@ -47,12 +40,43 @@
             maxZoom: 18,
             opacity: 0.3,
             reuseTiles: true
-        }).addTo(map);
+        });
 
 
+        var fusion = L.tileLayer('https://www.fusion-festival.de/fileadmin/user_upload/safetymap/v3/{z}/{x}/{y}.png', {
+            tms: true,
+            bounds: [[53.2975, 12.726], [53.3135, 12.765]],
+            attribution: "",
+            minZoom: 1,
+            maxZoom: 18,
+            reuseTiles: true
+        });
 
 
-        map.locate({ setView: true, maxZoom: 16 });
+        var map = L.map('map', {
+            center: [53.31, 12.74],
+            zoom: 16,
+            //minZoom: 13,
+            maxZoom: 18,
+            attributionControl: false,
+            scrollWheelZoom: false,
+            layers: [fusion]
+        });
+        map.scrollWheelZoom.enable()
+
+        var baseMaps = {
+        };
+
+        var overlayMaps = {
+            "OSM": osm,
+            "Fusion": fusion,
+            "Fusion Transparent": fusionTrans
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+
+        //map.locate({ setView: true, maxZoom: 16 });
         function onLocationFound(e) {
             var radius = e.accuracy;
             L.marker(e.latlng).addTo(map)
